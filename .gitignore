@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment variables (API keys)
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+.gemini/
+
+# Build outputs
+dist/
+build/

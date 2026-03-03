@@ -1,0 +1,8 @@
+.git
+.env
+node_modules
+server/node_modules
+*.md
+.vscode
+.idea
+.gemini

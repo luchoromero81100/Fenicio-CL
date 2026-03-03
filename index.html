@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Finder - Buscador Inteligente de Imágenes</title>
+    <meta name="description"
+        content="Aplicación para encontrar y validar imágenes de productos automáticamente usando IA">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="background-gradient"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-section">
+                <h1 class="logo-text">Image Finder</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <!-- Upload Section -->
+            <section id="uploadSection" class="card upload-section">
+                <!-- Mode Tabs -->
+                <div class="mode-tabs">
+                    <button class="mode-tab active" data-mode="images">Buscador de Imágenes</button>
+                    <button class="mode-tab" data-mode="stock">Generador de Stock</button>
+                    <button class="mode-tab" data-mode="unified">Modo Unificado</button>
+                </div>
+
+                <div class="upload-icon">
+
+                </div>
+                <h2 id="uploadTitle">Sube tu archivo Excel</h2>
+                <p class="upload-description" id="uploadDescription">El archivo debe contener las columnas:
+                    <strong>Nombre</strong> y <strong>Sku</strong>.
+                    <br>Opcionales recomendadas: <strong>Color prov</strong>, <strong>Marca</strong>,
+                    <strong>Categoria</strong>.
+                </p>
+
+                <!-- Download Template Button -->
+                <button id="downloadTemplateBtn" class="btn-template">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Descargar Template Vacío
+                </button>
+
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+                    <div class="upload-content">
+                        <svg class="upload-placeholder-icon" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        <p class="upload-text">Arrastra tu archivo aquí o <span class="upload-link">haz clic para
+                                seleccionar</span></p>
+                        <p class="upload-hint">Formato Excel</p>
+                    </div>
+                </div>
+
+                <div id="fileInfo" class="file-info" style="display: none;">
+                    <div class="file-details">
+                        <svg class="file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M13 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V9L13 2Z"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="file-text">
+                            <p class="file-name" id="fileName"></p>
+                            <p class="file-meta" id="fileMeta"></p>
+                        </div>
+                    </div>
+                    <button class="btn-remove" id="removeFile">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+
+
+                <div id="brandInputContainer" class="input-group" style="display: none;">
+                    <label for="manualBrandInput" class="input-label">Marca por defecto (Opcional)</label>
+                    <input type="text" id="manualBrandInput" class="input-field"
+                        placeholder="Ej: Nike, Adidas... (Si se deja vacío, la IA la detectará)">
+                    <p class="input-help">Si ingresas una marca aquí, se aplicará a TODOS los productos del archivo.</p>
+                </div>
+
+                <button id="analyzeBtn" class="btn-primary" disabled>
+                    Analizar Productos con IA
+                </button>
+                <button id="processStockBtn" class="btn-primary" style="display: none;" disabled>
+                    Generar Archivo de Stock
+                </button>
+                <button id="processUnifiedBtn" class="btn-primary" style="display: none;" disabled>
+                    Procesar Todo (Stock + Imágenes)
+                </button>
+            </section>
+
+            <!-- Stock Results Section -->
+            <section id="stockResultsSection" class="card results-section state-stock" style="display: none;">
+                <div class="results-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="10 9 9 9 8 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <h2>¡Stock Procesado!</h2>
+                <p class="results-description">El archivo ha sido generado con éxito. Revisa los datos antes de
+                    descargar.</p>
+
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="processedStockCount">0</div>
+                        <div class="stat-label">Productos procesados</div>
+                    </div>
+                </div>
+
+                <!-- Stock Preview Table -->
+                <div class="stock-preview">
+                    <h3>Vista Previa de Datos Generados</h3>
+                    <div class="stock-table-container">
+                        <table class="stock-table" id="stockPreviewTable">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Nombre Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Sexo</th>
+                                    <th>Marca</th>
+                                    <th>Color</th>
+                                    <th>Descripción Corta</th>
+                                    <th>Descripción Larga</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockPreviewTableBody">
+                                <!-- Rows will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button id="downloadStockBtn" class="btn-download">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Descargar CSV de Stock
+                </button>
+
+                <button id="newStockFileBtn" class="btn-secondary">
+                    Procesar otro archivo
+                </button>
+            </section>
+
+            <!-- Analysis Section (Step 1: Show extracted data) -->
+            <section id="analysisSection" class="card analysis-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Productos Analizados</h2>
+                    <p class="section-description">La IA ha extraído la marca y modelo de cada producto. Selecciona
+                        cuáles quieres enriquecer con imágenes.</p>
+                </div>
+
+                <div class="table-controls">
+                    <button id="selectAllBtn" class="btn-control">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 11L12 14L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path
+                                d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.0391 19.5304 20 19 20H5C4.46957 20 3.96086 19.7893 3.58579 19.4142C3.21071 19.0391 3 18.5304 3 18V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4H16"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Seleccionar Todos
+                    </button>
+                    <button id="deselectAllBtn" class="btn-control">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Deseleccionar Todos
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="productsTable" class="products-table">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col">
+                                    <input type="checkbox" id="headerCheckbox">
+                                </th>
+                                <th>Categoría</th>
+                                <th>Marca</th>
+                                <th>Modelo</th>
+                                <th>Color Prov</th>
+                                <th>SKU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Rows will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="analysis-footer">
+                    <p class="selection-count">
+                        <strong id="selectedCount">0</strong> de <strong id="totalProductsCount">0</strong> productos
+                        seleccionados
+                    </p>
+                    <div class="footer-buttons">
+                        <button id="backToUploadBtn" class="btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M19 12H5M12 19L5 12L12 5" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Volver
+                        </button>
+                        <button id="enrichBtn" class="btn-primary" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            Buscar Imágenes (IA Testing)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section id="processingSection" class="card processing-section" style="display: none;">
+                <div class="processing-header">
+                    <div class="spinner"></div>
+                    <h2>Procesando imágenes...</h2>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p class="progress-text" id="progressText">0%</p>
+                </div>
+
+                <div class="status-info">
+                    <div class="status-item">
+                        <span class="status-label">Artículos procesados:</span>
+                        <span class="status-value" id="processedCount">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Total:</span>
+                        <span class="status-value" id="totalCount">0</span>
+                    </div>
+                </div>
+
+                <div class="current-item" id="currentItem">
+                    <p>Procesando: <strong id="currentItemName">-</strong></p>
+                </div>
+
+                <!-- Processing Control Buttons -->
+                <div class="processing-controls" id="processingControls">
+                    <button id="cancelProcessBtn" class="btn-secondary btn-cancel">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Cancelar
+                    </button>
+                    <button id="pauseProcessBtn" class="btn-secondary btn-pause">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                        Pausar
+                    </button>
+                    <button id="skipToResultsBtn" class="btn-primary btn-continue">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                            <line x1="19" y1="5" x2="19" y2="19"></line>
+                        </svg>
+                        Ir a Resultados
+                    </button>
+                </div>
+
+                <!-- Processing Log -->
+                <div class="processing-log-container"
+                    style="margin-top: 15px; max-height: 200px; overflow-y: auto; background: #1e293b; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 12px;">
+                    <div id="processingLog"></div>
+                </div>
+
+                <!-- Real-time Results Table for IMAGES mode -->
+                <div class="results-preview" id="imagesPreviewContainer">
+                    <h3>Resultados en Tiempo Real</h3>
+                    <div class="results-table-container">
+                        <table class="results-table" id="resultsPreviewTable">
+                            <thead>
+                                <tr>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>SKU</th>
+                                    <th>Imagen 1</th>
+                                    <th>Imagen 2</th>
+                                    <th>Imagen 3</th>
+                                    <th>Imagen 4</th>
+                                    <th>Imagen 5</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsPreviewTableBody">
+                                <!-- Rows will be added dynamically as products are processed -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Real-time Results Table for STOCK mode -->
+                <div class="stock-preview" id="stockPreviewContainer" style="display: none;">
+                    <h3>Datos Generados en Tiempo Real</h3>
+                    <div class="stock-table-container">
+                        <table class="stock-table" id="stockRealTimeTable">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Nombre Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Sexo</th>
+                                    <th>Marca</th>
+                                    <th>Color</th>
+                                    <th>Descripción Corta</th>
+                                    <th>Descripción Larga</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockRealTimeTableBody">
+                                <!-- Rows will be added dynamically as products are processed -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Real-time Results Table for UNIFIED mode -->
+                <div class="stock-preview" id="unifiedPreviewContainer" style="display: none;">
+                    <h3>Progreso Unificado (Stock + Imágenes)</h3>
+                    <div class="stock-table-container">
+                        <table class="stock-table" id="unifiedRealTimeTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>SKU</th>
+                                    <th>Nombre</th>
+                                    <th>Stock</th>
+                                    <th>Imágenes</th>
+                                    <th>Cant. Imgs</th>
+                                    <th>Color Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unifiedRealTimeTableBody">
+                                <!-- Rows will be added dynamically as products are processed -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="processing-log" id="processingLog"></div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="card results-section" style="display: none;">
+                <div class="results-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M22 4L12 14.01L9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <h2>¡Proceso completado!</h2>
+                <p class="results-description">Tu archivo ha sido procesado exitosamente</p>
+
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalProcessed">0</div>
+                        <div class="stat-label">Artículos procesados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalImages">0</div>
+                        <div class="stat-label">Imágenes encontradas</div>
+                    </div>
+                </div>
+
+                <!-- Final Results Table -->
+                <div class="results-preview">
+                    <h3>Productos Procesados</h3>
+                    <div class="results-table-container">
+                        <table class="results-table" id="finalResultsTable">
+                            <thead>
+                                <tr>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>SKU</th>
+                                    <th>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" class="col-select-checkbox" data-col-index="0">
+                                            Imagen 1
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" class="col-select-checkbox" data-col-index="1">
+                                            Imagen 2
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" class="col-select-checkbox" data-col-index="2">
+                                            Imagen 3
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" class="col-select-checkbox" data-col-index="3">
+                                            Imagen 4
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            <input type="checkbox" class="col-select-checkbox" data-col-index="4">
+                                            Imagen 5
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div style="display: flex; align-items: center; gap: 5px;">
+                                            Extras
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="finalResultsTableBody">
+                                <!-- Will be populated from preview table -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <button id="aiSortBtn" class="btn-secondary"
+                    style="margin-bottom: 15px; margin-right: 10px; display: inline-flex;">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        style="width: 20px; height: 20px;">
+                        <path d="M7 3L7 21M3 7L7 3L11 7M17 14L17 21M20 17L17 21L14 17M14 8h7M14 3h7"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Revisar y Ordenar con IA
+                </button>
+
+                <button id="removeBgBtn" class="btn-secondary" style="margin-bottom: 15px;">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        style="width: 20px; height: 20px;">
+                        <path d="M3 3L21 21M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Sacar Fondo a Seleccionados
+                </button>
+
+                <button id="downloadBtn" class="btn-download">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Descargar Excel con Imágenes
+                </button>
+
+                <button id="downloadImagesBtn" class="btn-secondary" style="margin-left: 10px;">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        style="width: 20px; height: 20px;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                        <path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Descargar Imágenes (1500x1500)
+                </button>
+
+                <button id="newFileBtn" class="btn-secondary">
+                    Procesar otro archivo
+                </button>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>:P</p>
+        </footer>
+    </div>
+
+    <!-- SheetJS Library -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- JSZip Library for folder downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Módulos de la aplicación (orden importante) -->
+    <script src="shared.js"></script>
+    <script src="imageFinder.js"></script>
+    <script src="stockGenerator.js"></script>
+    <script src="unifiedMode_v2.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
