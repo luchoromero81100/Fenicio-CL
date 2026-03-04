@@ -1619,6 +1619,30 @@ function hasExactSkuMatch(url, sku) {
 // Dado un colorProv (ej: "BLK", "Black", "VINTAGE BLACK"),
 // devuelve todas las formas posibles en que podría aparecer en una URL
 // =============================================
+
+// Mapeo de sinónimos de color (grupos de colores equivalentes)
+// Cada color de un grupo matcheará con TODOS los otros del mismo grupo en URLs
+const COLOR_SYNONYMS = {
+    'black': ['black', 'blk', 'noir', 'negro', 'onyx', 'jet', 'midnight'],
+    'white': ['white', 'wht', 'blanc', 'blanco', 'snow', 'ivory', 'egret', 'egg', 'marshmallow', 'pearl', 'chalk'],
+    'navy': ['navy', 'nvy', 'naval', 'dark blue', 'darkblue', 'indigo', 'blue', 'blu'],
+    'blue': ['blue', 'blu', 'azul', 'cobalt', 'royal', 'sapphire', 'denim', 'pacific', 'navy', 'nvy', 'indigo'],
+    'light blue': ['light blue', 'lightblue', 'sky', 'sky blue', 'skyblue', 'celeste', 'sea', 'ocean', 'ice', 'powder', 'baby blue', 'babyblue', 'air blue', 'airblue', 'blue', 'blu'],
+    'grey': ['grey', 'gray', 'gry', 'gris', 'stone', 'charcoal', 'slate', 'ash', 'heather', 'steel', 'pewter', 'fog', 'cement', 'concrete', 'smoke', 'silver', 'sil', 'iron', 'lead', 'graphite', 'thunder'],
+    'green': ['green', 'grn', 'verde', 'olive', 'olv', 'forest', 'sage', 'moss', 'military', 'army', 'camo', 'pine', 'jungle', 'emerald', 'teal', 'dark green', 'darkgreen', 'dgrn', 'hunter', 'khaki'],
+    'red': ['red', 'rojo', 'scarlet', 'crimson', 'cherry', 'ruby', 'cardinal', 'fire'],
+    'pink': ['pink', 'pnk', 'rosa', 'coral', 'salmon', 'blush', 'dusty rose', 'dustyrose', 'flamingo', 'fuchsia', 'magenta', 'rose', 'mauve'],
+    'orange': ['orange', 'org', 'naranja', 'rust', 'terracotta', 'brick', 'clay', 'spice', 'copper', 'burnt', 'apricot', 'tangerine', 'paprika', 'cayenne'],
+    'yellow': ['yellow', 'ylw', 'amarillo', 'lemon', 'canary', 'sunshine', 'buttercup', 'daffodil', 'sunflower', 'maize'],
+    'brown': ['brown', 'brn', 'marron', 'chocolate', 'coffee', 'espresso', 'walnut', 'cocoa', 'mocha', 'chestnut', 'timber', 'mahogany', 'sienna', 'umber', 'cinnamon', 'tobacco', 'tan', 'camel', 'cam'],
+    'beige': ['beige', 'beg', 'tan', 'cream', 'khaki', 'sand', 'snd', 'dune', 'camel', 'cam', 'desert', 'ecru', 'ecr', 'off white', 'offwhite', 'natural', 'oatmeal', 'bone', 'linen', 'parchment', 'wheat', 'vanilla', 'almond', 'nude', 'taupe', 'fawn', 'ivory', 'egret'],
+    'purple': ['purple', 'violeta', 'violet', 'plum', 'grape', 'eggplant', 'amethyst', 'aubergine', 'berry', 'lilac', 'lavender', 'orchid'],
+    'lilac': ['lilac', 'lil', 'lavender', 'periwinkle', 'wisteria', 'orchid', 'thistle', 'heliotrope', 'grape', 'purple', 'violet', 'plum'],
+    'burgundy': ['burgundy', 'bordeaux', 'wine', 'merlot', 'oxblood', 'maroon', 'garnet', 'cranberry', 'port', 'claret', 'sangria'],
+    'mustard': ['mustard', 'gold', 'gld', 'golden', 'amber', 'ochre', 'saffron', 'turmeric', 'honey', 'dijon'],
+    'multicolor': ['multicolor', 'multi', 'mul', 'rainbow', 'tie dye', 'tiedye'],
+};
+
 function getColorVariants(colorProv) {
     if (!colorProv || typeof colorProv !== 'string') return [];
 
@@ -1640,7 +1664,7 @@ function getColorVariants(colorProv) {
     // Con underscore (ej: "dark green" → "dark_green")
     variants.add(lower.replace(/\s+/g, '_'));
 
-    // Si es un código corto (ej "BLK"), buscar su expansión
+    // Si es un código corto (ej "BLK"), buscar su expansión en COLOR_CODES_MAPPING
     const upperRaw = raw.toUpperCase();
     if (typeof COLOR_CODES_MAPPING !== 'undefined' && COLOR_CODES_MAPPING[upperRaw]) {
         const expanded = COLOR_CODES_MAPPING[upperRaw].toLowerCase();
@@ -1657,6 +1681,40 @@ function getColorVariants(colorProv) {
                 variants.add(code.toLowerCase());
             }
         }
+    }
+
+    // Buscar en COLOR_SYNONYMS: si nuestro color aparece en algún grupo, agregar TODOS los sinónimos
+    const lowerNoSpaces = lower.replace(/\s+/g, '');
+    for (const [, synonyms] of Object.entries(COLOR_SYNONYMS)) {
+        const matchesGroup = synonyms.some(s => {
+            const sNorm = s.replace(/\s+/g, '');
+            return s === lower || sNorm === lowerNoSpaces;
+        });
+
+        if (matchesGroup) {
+            for (const syn of synonyms) {
+                variants.add(syn);
+                variants.add(syn.replace(/\s+/g, ''));
+                variants.add(syn.replace(/\s+/g, '-'));
+                variants.add(syn.replace(/\s+/g, '_'));
+            }
+            // No break: un color puede pertenecer a múltiples grupos relacionados
+        }
+    }
+
+    // Generar abreviatura automática (primeras letras de cada palabra)
+    // Ej: "deep green" → "dpgn", "vintage black" → "vbk"
+    const words = lower.split(/\s+/);
+    if (words.length >= 2) {
+        // 2 letras de cada palabra
+        const abbrev2 = words.map(w => w.substring(0, 2)).join('');
+        if (abbrev2.length >= 3) variants.add(abbrev2);
+        // 1 letra de primera + 2 de segunda
+        const abbrev12 = words[0][0] + words.slice(1).map(w => w.substring(0, 2)).join('');
+        if (abbrev12.length >= 3) variants.add(abbrev12);
+        // Consonantes principales
+        const consonantsOnly = lower.replace(/[aeiou\s]/g, '');
+        if (consonantsOnly.length >= 3) variants.add(consonantsOnly);
     }
 
     // Filtrar variantes demasiado cortas (menos de 2 chars) que darían falsos positivos
@@ -3911,6 +3969,50 @@ async function findImagesWithTestingLogic(product) {
 
     // 6. Selección Final (prioridad: SKU exacto > SKU+Color > Modelo+Color > IA)
     let allAccepted = [...autoAccepted, ...strictUrls];
+
+    // FILTRO OBLIGATORIO DE COLOR: Si hay colorProv, la URL DEBE contenerlo
+    if (colorProv && colorProv.trim().length > 0) {
+        const beforeFilter = allAccepted.length;
+        allAccepted = allAccepted.filter(item => urlContainsColor(item.url, colorProv));
+        const filtered = beforeFilter - allAccepted.length;
+        if (filtered > 0) {
+            addLog(`   🎨 Filtro de color "${colorProv}": ${filtered} URLs descartadas (no contienen el color)`, 'info');
+        }
+    }
+
+    // FILTRO OBLIGATORIO DE MODELO: la URL DEBE contener el modelo (o el SKU como alternativa)
+    if (modelo && modelo.trim().length >= 3) {
+        const modeloNorm = modelo.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const modeloVariants = [
+            modelo.toLowerCase(),
+            modelo.toLowerCase().replace(/\s+/g, '-'),
+            modelo.toLowerCase().replace(/\s+/g, '_'),
+            modelo.toLowerCase().replace(/\s+/g, ''),
+        ].filter(v => v.length >= 3);
+
+        // SKU también es válido como identificador del producto
+        const skuNorm = (sku || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        const beforeFilter = allAccepted.length;
+        allAccepted = allAccepted.filter(item => {
+            const urlNorm = item.url.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const urlLower = item.url.toLowerCase();
+
+            // ¿Contiene el modelo?
+            const hasModel = modeloVariants.some(v =>
+                urlNorm.includes(v.replace(/[^a-z0-9]/g, '')) || urlLower.includes(v)
+            );
+
+            // ¿Contiene el SKU? (alternativa válida)
+            const hasSku = skuNorm.length >= 5 && urlNorm.includes(skuNorm);
+
+            return hasModel || hasSku;
+        });
+        const filtered = beforeFilter - allAccepted.length;
+        if (filtered > 0) {
+            addLog(`   📛 Filtro de modelo "${modelo}": ${filtered} URLs descartadas (no contienen el modelo ni SKU)`, 'info');
+        }
+    }
 
     // Site Hint Search (Búsqueda extra si solo hay 1)
     if (allAccepted.length === 1) {

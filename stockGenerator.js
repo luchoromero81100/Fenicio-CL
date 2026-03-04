@@ -1271,16 +1271,23 @@ COLORES VÁLIDOS (USAR EXACTAMENTE UNO):
 ${VALID_COLORS.join(', ')}
 
 REGLAS DE COLOR:
-- Traducir cualquier color al más cercano de la lista
-- "Navy", "Dark Blue" → azul
-- "Light Blue", "Sky Blue" → celeste
+- Traducir el color al más cercano de la lista, incluyendo nombres creativos de marcas
+- "Navy", "Dark Blue", "Indigo", "Indigo Blue" → azul
+- "Light Blue", "Sky Blue", "Sky", "Sea" → celeste
 - "Purple" → violeta
-- "Burgundy", "Wine" → bordeaux
-- "Tan", "Cream", "Off White", "Bone" → beige
-- "Brown", "Chocolate" → marron
-- "Gold", "Mustard" → mostaza
-- Si tiene varios colores → multicolor
+- "Burgundy", "Wine", "Merlot", "Oxblood" → bordeaux
+- "Tan", "Cream", "Off White", "Bone", "Egret", "Egg", "Ivory", "Natural", "Oatmeal", "Vintage White" → beige
+- "Brown", "Chocolate", "Coffee", "Espresso", "Walnut" → marron
+- "Gold", "Mustard", "Ochre", "Amber" → mostaza
+- "Stone", "Slate", "Charcoal", "Ash", "Heather", "Steel", "Pewter", "Fog", "Cement", "Concrete" → gris
+- "Khaki", "Sand", "Dune", "Camel", "Desert" → beige
+- "Coral", "Salmon", "Blush", "Dusty Rose" → rosa
+- "Olive", "Forest", "Sage", "Moss", "Military", "Army", "Camo" → verde
+- "Rust", "Terracotta", "Brick", "Clay" → naranja
+- Si tiene varios colores claramente distinguibles → multicolor
 - Si tiene un estampado/print → patron
+- Si el nombre del color es MUY ESOTÉRICO y no podés deducir el color real con confianza → devolver "" (vacío)
+- NUNCA adivinar. Si no estás seguro, dejá vacío
 
 ═══════════════════════════════════════════
 MODELO:
@@ -1337,24 +1344,37 @@ Responde SOLO JSON válido:
                 brandSlug = 'varias';
             }
 
-            // Validar color
-            let color = (result.color || excelColor || '').toLowerCase().trim();
-            if (!VALID_COLORS.includes(color)) {
+            // Validar color - si la IA devolvió vacío, intentar con el color del Excel
+            let color = (result.color || '').toLowerCase().trim();
+
+            // Si la IA no detectó color, intentar con el color del Excel
+            if (!color && excelColor) {
+                color = excelColor.toLowerCase().trim();
+            }
+
+            if (color && !VALID_COLORS.includes(color)) {
                 console.warn(`Color "${color}" no válido, mapeando...`);
-                // Intentar mapear colores comunes
                 const colorMap = {
-                    'negro': 'negro', 'black': 'negro', 'blanco': 'blanco', 'white': 'blanco',
-                    'azul': 'azul', 'blue': 'azul', 'navy': 'azul', 'verde': 'verde', 'green': 'verde',
-                    'rojo': 'rojo', 'red': 'rojo', 'gris': 'gris', 'grey': 'gris', 'gray': 'gris',
-                    'amarillo': 'amarillo', 'yellow': 'amarillo', 'naranja': 'naranja', 'orange': 'naranja',
-                    'rosa': 'rosa', 'pink': 'rosa', 'violeta': 'violeta', 'purple': 'violeta',
-                    'marron': 'marron', 'brown': 'marron', 'beige': 'beige', 'tan': 'beige', 'cream': 'beige',
-                    'multicolor': 'multicolor', 'multi': 'multicolor', 'celeste': 'celeste', 'light blue': 'celeste',
-                    'bordeaux': 'bordeaux', 'burgundy': 'bordeaux', 'wine': 'bordeaux',
-                    'mostaza': 'mostaza', 'mustard': 'mostaza', 'lila': 'lila', 'lilac': 'lila',
+                    'negro': 'negro', 'black': 'negro', 'blk': 'negro',
+                    'blanco': 'blanco', 'white': 'blanco', 'wht': 'blanco',
+                    'azul': 'azul', 'blue': 'azul', 'navy': 'azul', 'nvy': 'azul', 'indigo': 'azul',
+                    'verde': 'verde', 'green': 'verde', 'grn': 'verde', 'olive': 'verde', 'sage': 'verde',
+                    'rojo': 'rojo', 'red': 'rojo',
+                    'gris': 'gris', 'grey': 'gris', 'gray': 'gris', 'stone': 'gris', 'charcoal': 'gris', 'slate': 'gris', 'heather': 'gris',
+                    'amarillo': 'amarillo', 'yellow': 'amarillo',
+                    'naranja': 'naranja', 'orange': 'naranja', 'rust': 'naranja', 'terracotta': 'naranja',
+                    'rosa': 'rosa', 'pink': 'rosa', 'coral': 'rosa', 'salmon': 'rosa', 'blush': 'rosa',
+                    'violeta': 'violeta', 'purple': 'violeta',
+                    'marron': 'marron', 'brown': 'marron', 'brn': 'marron', 'chocolate': 'marron',
+                    'beige': 'beige', 'tan': 'beige', 'cream': 'beige', 'khaki': 'beige', 'sand': 'beige', 'egret': 'beige', 'natural': 'beige', 'oatmeal': 'beige',
+                    'multicolor': 'multicolor', 'multi': 'multicolor',
+                    'celeste': 'celeste', 'light blue': 'celeste', 'sky': 'celeste',
+                    'bordeaux': 'bordeaux', 'burgundy': 'bordeaux', 'wine': 'bordeaux', 'merlot': 'bordeaux',
+                    'mostaza': 'mostaza', 'mustard': 'mostaza', 'ochre': 'mostaza',
+                    'lila': 'lila', 'lilac': 'lila', 'lavender': 'lila',
                     'carey': 'carey', 'tortoise': 'carey', 'patron': 'patron', 'print': 'patron'
                 };
-                color = colorMap[color] || 'multicolor';
+                color = colorMap[color] || '';  // Si no lo encuentra → vacío, NO adivinar
             }
 
             const category = result.category || 'otros';
@@ -1364,11 +1384,40 @@ Responde SOLO JSON válido:
             const brandDisplay = BRAND_DISPLAY_NAMES[brandSlug] || brandSlug;
             const categoryDisplay = CATEGORY_DISPLAY_NAMES[category] || category.split('/').pop().replace(/-/g, ' ');
 
-            // Capitalizar color
-            const colorDisplay = color.charAt(0).toUpperCase() + color.slice(1);
+            // Capitalizar color (si existe)
+            const colorDisplay = color ? color.charAt(0).toUpperCase() + color.slice(1) : '';
 
-            // Construir nombre para ecommerce: "Remera Critical Slide Band - Verde"
-            let finalName = `${categoryDisplay} ${brandDisplay} ${model}`.trim();
+            // Preservar las palabras originales que vienen ANTES de la marca en el nombre del Excel
+            const productNameLower = productName.toLowerCase();
+            const brandDisplayLower = brandDisplay.toLowerCase();
+            const brandSlugClean = brandSlug.replace(/-/g, ' ');
+
+            // Buscar dónde aparece la marca en el nombre original
+            let brandIndex = productNameLower.indexOf(brandDisplayLower);
+            if (brandIndex === -1) {
+                brandIndex = productNameLower.indexOf(brandSlugClean);
+            }
+
+            let prefixFromOriginal = '';
+            if (brandIndex > 0) {
+                // Usar las palabras originales previas a la marca (respetando el orden del Excel)
+                prefixFromOriginal = productName.substring(0, brandIndex).trim();
+                // Capitalizar cada palabra del prefijo
+                prefixFromOriginal = prefixFromOriginal.split(' ')
+                    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                    .join(' ');
+            } else {
+                // Fallback: usar el nombre de categoría mapeado
+                prefixFromOriginal = categoryDisplay;
+            }
+
+            // Limpiar abreviaturas de manga y palabras redundantes con la categoría
+            const redundantWords = /\b(s\/s|m\/c|m\/l|l\/s|mc|ml|ss|ls|sm|cap|hat)\b/gi;
+            prefixFromOriginal = prefixFromOriginal.replace(redundantWords, '').replace(/\s+/g, ' ').trim();
+            const cleanModel = model.replace(redundantWords, '').replace(/\s+/g, ' ').trim();
+
+            // Construir nombre: palabras originales pre-marca + marca + modelo
+            let finalName = `${prefixFromOriginal} ${brandDisplay} ${cleanModel}`.trim();
             finalName = finalName.replace(/\s+/g, ' ');
 
             if (colorDisplay) {
