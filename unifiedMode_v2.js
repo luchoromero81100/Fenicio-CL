@@ -774,13 +774,16 @@ async function downloadUnifiedZip() {
         for (let i = 0; i < row.imageUrlsFinal.length; i++) {
             const url = row.imageUrlsFinal[i];
             try {
-                const response = await fetch(url);
+                const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const blob = await response.blob();
                 const ext = url.split('.').pop().split('?')[0] || 'jpg';
                 folder.file(`${row.cleanSku}_${i + 1}.${ext}`, blob);
                 count++;
             } catch (e) {
                 console.error('Error downloading img for zip:', e);
+                addLog(`  ⚠️ No se pudo descargar imagen: ${row.cleanSku}_${i + 1}`, 'warning');
             }
         }
     }
@@ -790,9 +793,10 @@ async function downloadUnifiedZip() {
         return;
     }
 
+    addLog(`📦 Generando ZIP con ${count} imágenes...`, 'info');
     zip.generateAsync({ type: "blob" }).then(function (content) {
         saveAs(content, "imagenes_stock.zip");
-        addLog('✅ ZIP descargado', 'success');
+        addLog(`✅ ZIP descargado con ${count} imágenes`, 'success');
     });
 }
 
